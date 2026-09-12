@@ -1,0 +1,29 @@
+<include>
+  <!-- pstn-sim: the simulated-PSTN peer (docs/INTAKE.md §2/§7). Same
+       FreeSWITCH image as the main `freeswitch` service, different conf/ -
+       no WebRTC/WSS here, just a plain SIP "phone" (2000) and a gateway back
+       to `freeswitch`, reachable only on the internal docker-compose
+       network (never published to the host). -->
+  <X-PRE-PROCESS cmd="set" data="domain=$${local_ip_v4}"/>
+  <X-PRE-PROCESS cmd="env-set" data="domain=$PSTN_SIM_DOMAIN"/>
+  <X-PRE-PROCESS cmd="set" data="domain_name=$${domain}"/>
+
+  <X-PRE-PROCESS cmd="set" data="hold_music="/>
+  <X-PRE-PROCESS cmd="set" data="global_codec_prefs=PCMU,PCMA,G722"/>
+  <X-PRE-PROCESS cmd="set" data="outbound_codec_prefs=PCMU,PCMA,G722"/>
+
+  <X-PRE-PROCESS cmd="set" data="internal_auth_calls=true"/>
+  <X-PRE-PROCESS cmd="set" data="internal_sip_port=5060"/>
+  <X-PRE-PROCESS cmd="set" data="external_auth_calls=false"/>
+  <X-PRE-PROCESS cmd="set" data="external_sip_port=5080"/>
+
+  <X-PRE-PROCESS cmd="set" data="outbound_caller_name=PSTN-SIM"/>
+  <X-PRE-PROCESS cmd="set" data="outbound_caller_id=2000"/>
+  <X-PRE-PROCESS cmd="set" data="console_loglevel=info"/>
+
+  <X-PRE-PROCESS cmd="set" data="ext_2000_password=changeme2000"/>
+  <X-PRE-PROCESS cmd="env-set" data="ext_2000_password=$EXT_2000_PASSWORD"/>
+
+  <X-PRE-PROCESS cmd="set" data="esl_password=ClueCon"/>
+  <X-PRE-PROCESS cmd="env-set" data="esl_password=$ESL_PASSWORD"/>
+</include>

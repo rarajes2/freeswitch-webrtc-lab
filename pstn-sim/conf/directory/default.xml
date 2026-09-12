@@ -1,0 +1,11 @@
+<include>
+  <domain name="$${domain}">
+    <groups>
+      <group name="default">
+        <users>
+          <X-PRE-PROCESS cmd="include" data="default/*.xml"/>
+        </users>
+      </group>
+    </groups>
+  </domain>
+</include>

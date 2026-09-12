@@ -1,0 +1,81 @@
+<include>
+  <!--
+      Domain: defaults to this container's local IP (FreeSWITCH's own
+      $${local_ip_v4}), override with LAB_DOMAIN in .env if you want a
+      stable hostname instead. See docs/INTAKE.md §2/§3.
+  -->
+  <X-PRE-PROCESS cmd="set" data="domain=$${local_ip_v4}"/>
+  <X-PRE-PROCESS cmd="env-set" data="domain=$LAB_DOMAIN"/>
+  <X-PRE-PROCESS cmd="set" data="domain_name=$${domain}"/>
+
+  <!-- No hold-music/prompt sound files are installed in this image (kept out
+       of scope per docs/INTAKE.md - lab focuses on signaling/media path,
+       not IVR prompts), so this is intentionally left blank. -->
+  <X-PRE-PROCESS cmd="set" data="hold_music="/>
+
+  <!-- Opus for WebRTC legs, PCMU/PCMA (G.711) + G722 for the simulated-PSTN
+       leg. FreeSWITCH transcodes between these automatically per-leg as long
+       as bypass_media/proxy_media stay off (see dialplan). -->
+  <X-PRE-PROCESS cmd="set" data="global_codec_prefs=OPUS,G722,PCMU,PCMA"/>
+  <X-PRE-PROCESS cmd="set" data="outbound_codec_prefs=OPUS,G722,PCMU,PCMA"/>
+
+  <X-PRE-PROCESS cmd="set" data="sip_tls_version=tlsv1.2"/>
+  <X-PRE-PROCESS cmd="set" data="sip_tls_ciphers=ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"/>
+
+  <!-- Internal SIP profile: SIP registration + WebRTC (WS/WSS) -->
+  <X-PRE-PROCESS cmd="set" data="internal_auth_calls=true"/>
+  <X-PRE-PROCESS cmd="set" data="internal_sip_port=5060"/>
+  <X-PRE-PROCESS cmd="set" data="internal_tls_port=5061"/>
+  <X-PRE-PROCESS cmd="set" data="internal_ssl_enable=false"/>
+
+  <!-- External SIP profile: gateway-only, used for the freeswitch<->pstn-sim
+       peering link. Never published to the host (docker-compose keeps this
+       internal-network-only). -->
+  <X-PRE-PROCESS cmd="set" data="external_auth_calls=false"/>
+  <X-PRE-PROCESS cmd="set" data="external_sip_port=5080"/>
+  <X-PRE-PROCESS cmd="set" data="external_tls_port=5081"/>
+  <X-PRE-PROCESS cmd="set" data="external_ssl_enable=false"/>
+
+  <!--
+      external_rtp_ip / external_sip_ip: the address advertised in SDP/ICE to
+      WebRTC browser clients - THE single most common "call connects but no
+      audio" cause if wrong (docs/INTAKE.md §2). STUN is attempted as a
+      fallback default; set EXTERNAL_RTP_IP / EXTERNAL_SIP_IP in .env to your
+      Docker host's LAN IP for reliable results, especially on macOS/Docker
+      Desktop where bridge networking is required (host networking does not
+      expose the container the way it does on Linux).
+  -->
+  <X-PRE-PROCESS cmd="stun-set" data="external_rtp_ip=stun:stun.freeswitch.org"/>
+  <X-PRE-PROCESS cmd="stun-set" data="external_sip_ip=stun:stun.freeswitch.org"/>
+  <X-PRE-PROCESS cmd="env-set" data="external_rtp_ip=$EXTERNAL_RTP_IP"/>
+  <X-PRE-PROCESS cmd="env-set" data="external_sip_ip=$EXTERNAL_SIP_IP"/>
+
+  <X-PRE-PROCESS cmd="set" data="outbound_caller_name=FreeSWITCH Lab"/>
+  <X-PRE-PROCESS cmd="set" data="outbound_caller_id=1000"/>
+  <X-PRE-PROCESS cmd="set" data="console_loglevel=info"/>
+
+  <!--
+      Per-extension SIP passwords (native FreeSWITCH auth - no SignalWire
+      token/password service involved, see docs/INTAKE.md §1/§4). The values
+      below are dev-only placeholders; override every one of them via .env
+      (EXT_100x_PASSWORD) before this is reachable from anywhere but
+      localhost.
+  -->
+  <X-PRE-PROCESS cmd="set" data="ext_1000_password=changeme1000"/>
+  <X-PRE-PROCESS cmd="env-set" data="ext_1000_password=$EXT_1000_PASSWORD"/>
+  <X-PRE-PROCESS cmd="set" data="ext_1001_password=changeme1001"/>
+  <X-PRE-PROCESS cmd="env-set" data="ext_1001_password=$EXT_1001_PASSWORD"/>
+  <X-PRE-PROCESS cmd="set" data="ext_1002_password=changeme1002"/>
+  <X-PRE-PROCESS cmd="env-set" data="ext_1002_password=$EXT_1002_PASSWORD"/>
+  <X-PRE-PROCESS cmd="set" data="ext_1003_password=changeme1003"/>
+  <X-PRE-PROCESS cmd="env-set" data="ext_1003_password=$EXT_1003_PASSWORD"/>
+
+  <!--
+      ESL (Event Socket) password: default is FreeSWITCH's well-known
+      "ClueCon". ESL (8021) is never published outside the docker network
+      (docs/INTAKE.md §3/§4) but should still not stay on the default -
+      override via .env (ESL_PASSWORD).
+  -->
+  <X-PRE-PROCESS cmd="set" data="esl_password=ClueCon"/>
+  <X-PRE-PROCESS cmd="env-set" data="esl_password=$ESL_PASSWORD"/>
+</include>

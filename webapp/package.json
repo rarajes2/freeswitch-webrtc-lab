@@ -1,0 +1,18 @@
+{
+  "name": "freeswitch-webrtc-lab-webapp",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Standalone browser softphone for the FreeSWITCH WebRTC lab (docs/INTAKE.md §5). Not part of docker-compose -- run locally with npm.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "sip.js": "^0.21.2"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

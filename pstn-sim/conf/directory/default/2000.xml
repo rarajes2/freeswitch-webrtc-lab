@@ -1,0 +1,17 @@
+<include>
+  <!-- Optional: register a real SIP softphone here as "2000" to act as a
+       human on the simulated-PSTN side. If nothing registers, inbound calls
+       fall back to auto-answer+echo - see dialplan/public/01_inbound.xml. -->
+  <user id="2000">
+    <params>
+      <param name="password" value="$${ext_2000_password}"/>
+    </params>
+    <variables>
+      <variable name="user_context" value="default"/>
+      <variable name="effective_caller_id_name" value="PSTN Phone 2000"/>
+      <variable name="effective_caller_id_number" value="2000"/>
+      <variable name="outbound_caller_id_name" value="$${outbound_caller_name}"/>
+      <variable name="outbound_caller_id_number" value="$${outbound_caller_id}"/>
+    </variables>
+  </user>
+</include>

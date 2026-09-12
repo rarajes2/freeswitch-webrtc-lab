@@ -1,0 +1,13 @@
+<!--
+    Gateway back to the `freeswitch` service - the other half of the
+    freeswitch<->pstn-sim peering link (docs/INTAKE.md §2/§3). Same
+    IP-ACL-based static trunking pattern as freeswitch's own pstn_sim.xml
+    gateway, register="false".
+-->
+<include>
+  <gateway name="freeswitch">
+    <param name="register" value="false"/>
+    <param name="proxy" value="freeswitch:5080"/>
+    <param name="context" value="public"/>
+  </gateway>
+</include>

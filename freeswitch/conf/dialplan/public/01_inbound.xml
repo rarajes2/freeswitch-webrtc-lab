@@ -1,0 +1,14 @@
+<include>
+  <!-- Inbound routing for calls arriving from the pstn_sim gateway (i.e. the
+       simulated-PSTN leg calling INTO this side, as if it were a real
+       carrier delivering an inbound DID call). Single-DID-to-single-extension
+       for the lab: everything rings extension 1000. See docs/INTAKE.md
+       §3/§7 "numbering / DID plan" for how to extend this to a real
+       DID-to-extension map later. -->
+  <extension name="from_pstn_sim">
+    <condition field="destination_number" expression="^.*$">
+      <action application="set" data="domain_name=$${domain}"/>
+      <action application="transfer" data="1000 XML default"/>
+    </condition>
+  </extension>
+</include>

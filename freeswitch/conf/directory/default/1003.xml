@@ -1,0 +1,14 @@
+<include>
+  <user id="1003">
+    <params>
+      <param name="password" value="$${ext_1003_password}"/>
+    </params>
+    <variables>
+      <variable name="user_context" value="default"/>
+      <variable name="effective_caller_id_name" value="Extension 1003"/>
+      <variable name="effective_caller_id_number" value="1003"/>
+      <variable name="outbound_caller_id_name" value="$${outbound_caller_name}"/>
+      <variable name="outbound_caller_id_number" value="$${outbound_caller_id}"/>
+    </variables>
+  </user>
+</include>

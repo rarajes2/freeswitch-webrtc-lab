@@ -1,0 +1,34 @@
+<include>
+  <!-- Calls arriving from the freeswitch gateway, i.e. the "PSTN" leg being
+       called. See docs/INTAKE.md §2/§8 Phase 1 acceptance criteria: this is
+       what proves the full webrtc -> freeswitch -> gateway -> pstn-sim path
+       works end to end, with zero real carrier involved. -->
+
+  <!-- If a softphone is registered as 2000, ring it; otherwise fall through
+       to the catch-all below (a failed bridge just continues to the next
+       action). -->
+  <extension name="pstn_phone_2000">
+    <condition field="destination_number" expression="^2000$">
+      <action application="set" data="domain_name=$${domain}"/>
+      <!-- Without this, a bridge failure caused by "no such registered user"
+           (as opposed to a reachable-but-busy/no-answer peer) hangs the call
+           up immediately instead of falling through to the next action -
+           verified empirically against a real run of this dialplan. -->
+      <action application="set" data="continue_on_fail=true"/>
+      <action application="bridge" data="user/2000@${domain_name}"/>
+      <action application="answer"/>
+      <action application="echo"/>
+    </condition>
+  </extension>
+
+  <!-- Catch-all: auto-answer and echo the caller's own audio back to them.
+       Hearing your own voice looped back proves two-way audio made it all
+       the way through the gateway and back, with no human needed on this
+       side. -->
+  <extension name="pstn_catch_all">
+    <condition field="destination_number" expression="^.*$">
+      <action application="answer"/>
+      <action application="echo"/>
+    </condition>
+  </extension>
+</include>

@@ -1,0 +1,121 @@
+:root {
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 2rem 1rem;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.panel {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.panel h2 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+  color: #94a3b8;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.row label {
+  width: 90px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+input[type="text"],
+input[type="password"] {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+button {
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+button:disabled {
+  background: #334155;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.status {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.status-registered,
+.status-active {
+  background: #14532d;
+  color: #86efac;
+}
+
+.status-unregistered,
+.status-idle {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.status-ringing,
+.status-dialing,
+.status-held {
+  background: #713f12;
+  color: #fde68a;
+}
+
+.incoming {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.log {
+  height: 160px;
+  overflow-y: auto;
+  background: #0f172a;
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  white-space: pre-wrap;
+  margin: 0;
+}

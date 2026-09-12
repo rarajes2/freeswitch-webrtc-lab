@@ -1,0 +1,117 @@
+name: freeswitch-webrtc-lab
+
+networks:
+  lab:
+    driver: bridge
+    ipam:
+      config:
+        # Fixed subnet so conf/autoload_configs/acl.conf.xml's `pstn_trusted`
+        # ACL (and pstn-sim's mirror of it) can allow-list it by CIDR -- see
+        # docs/INTAKE.md §4.
+        - subnet: 172.28.0.0/24
+
+services:
+  freeswitch:
+    build: ./freeswitch
+    container_name: fswebrtclab-freeswitch
+    hostname: freeswitch
+    networks:
+      lab:
+        ipv4_address: 172.28.0.10
+    environment:
+      - LAB_DOMAIN=${LAB_DOMAIN:-fs.local}
+      - EXTERNAL_RTP_IP=${EXTERNAL_RTP_IP:-127.0.0.1}
+      - EXTERNAL_SIP_IP=${EXTERNAL_SIP_IP:-127.0.0.1}
+      - EXT_1000_PASSWORD=${EXT_1000_PASSWORD:-changeme1000}
+      - EXT_1001_PASSWORD=${EXT_1001_PASSWORD:-changeme1001}
+      - EXT_1002_PASSWORD=${EXT_1002_PASSWORD:-changeme1002}
+      - EXT_1003_PASSWORD=${EXT_1003_PASSWORD:-changeme1003}
+      - ESL_PASSWORD=${ESL_PASSWORD:-ClueCon}
+    volumes:
+      - ./freeswitch/conf:/usr/local/freeswitch/conf
+      - fs-log:/usr/local/freeswitch/log
+      - fs-db:/usr/local/freeswitch/db
+      - fs-recordings:/usr/local/freeswitch/recordings
+      - fs-storage:/usr/local/freeswitch/storage
+    ports:
+      # WebRTC signaling (WSS -- self-signed cert, see docs/DEBUGGING.md)
+      - "7443:7443"
+      # Plain SIP -- only needed if you want an external (non-browser) SIP
+      # softphone to register directly; not required for the webapp.
+      - "5060:5060/udp"
+      - "5060:5060/tcp"
+      # RTP media, narrowed range (see conf/autoload_configs/switch.conf.xml)
+      - "16384-16584:16384-16584/udp"
+      # 5080 (external/gateway profile) and 8021 (ESL) are intentionally NOT
+      # published -- internal docker network only, see docs/INTAKE.md §4.
+    healthcheck:
+      test: ["CMD", "fs_cli", "-x", "status"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  pstn-sim:
+    build: ./freeswitch
+    container_name: fswebrtclab-pstn-sim
+    hostname: pstn-sim
+    networks:
+      lab:
+        ipv4_address: 172.28.0.11
+    environment:
+      - PSTN_SIM_DOMAIN=${PSTN_SIM_DOMAIN:-pstn-sim.local}
+      - EXT_2000_PASSWORD=${EXT_2000_PASSWORD:-changeme2000}
+      - ESL_PASSWORD=${ESL_PASSWORD:-ClueCon}
+    volumes:
+      - ./pstn-sim/conf:/usr/local/freeswitch/conf
+      - pstn-log:/usr/local/freeswitch/log
+      - pstn-db:/usr/local/freeswitch/db
+    # No ports published at all: pstn-sim only ever talks to `freeswitch`
+    # over the internal docker network (docs/INTAKE.md §2).
+    healthcheck:
+      test: ["CMD", "fs_cli", "-x", "status"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  coturn:
+    image: coturn/coturn:4.6
+    container_name: fswebrtclab-coturn
+    hostname: coturn
+    networks:
+      lab:
+        ipv4_address: 172.28.0.12
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "5349:5349/tcp"
+      - "49152-49352:49152-49352/udp"
+    # Bridge networking + explicit --external-ip, not `network_mode: host`:
+    # host networking doesn't expose a container on the real host interface
+    # under Docker Desktop on macOS the way it does on Linux (see
+    # docs/INTAKE.md §2/§7 and docs/DEBUGGING.md), so it would leave TURN
+    # relay candidates unreachable from a real browser on this dev machine.
+    # --external-ip must match EXTERNAL_RTP_IP for the same reason.
+    command: >
+      -n
+      --listening-port=3478
+      --tls-listening-port=5349
+      --min-port=49152
+      --max-port=49352
+      --realm=${LAB_DOMAIN:-fs.local}
+      --user=${TURN_USER:-labuser}:${TURN_PASSWORD:-changeme_turn}
+      --external-ip=${TURN_EXTERNAL_IP:-127.0.0.1}
+      --no-cli
+      --log-file=stdout
+    restart: unless-stopped
+
+volumes:
+  fs-log:
+  fs-db:
+  fs-recordings:
+  fs-storage:
+  pstn-log:
+  pstn-db:

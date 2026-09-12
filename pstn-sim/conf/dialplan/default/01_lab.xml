@@ -1,0 +1,12 @@
+<include>
+  <!-- If a real softphone is registered as 2000, let it dial back into the
+       freeswitch side's extensions (1000-1003) through the gateway - lets
+       you manually prove the "PSTN calls into the lab" direction with an
+       actual SIP client instead of just fs_cli originate. -->
+  <extension name="to_freeswitch">
+    <condition field="destination_number" expression="^(10[0-3][0-9])$">
+      <action application="export" data="dialed_extension=$1"/>
+      <action application="bridge" data="sofia/gateway/freeswitch/${dialed_extension}"/>
+    </condition>
+  </extension>
+</include>

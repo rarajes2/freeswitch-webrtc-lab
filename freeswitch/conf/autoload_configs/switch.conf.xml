@@ -1,0 +1,19 @@
+<configuration name="switch.conf" description="Core Configuration">
+  <settings>
+    <param name="colorize-console" value="true"/>
+    <param name="max-db-handles" value="50"/>
+    <param name="db-handle-timeout" value="10"/>
+    <param name="max-sessions" value="1000"/>
+    <param name="sessions-per-second" value="30"/>
+    <param name="loglevel" value="info"/>
+    <param name="dump-cores" value="yes"/>
+
+    <!-- Narrowed per docs/INTAKE.md §2 - the default FreeSWITCH range
+         (16384-32768, ~16k ports) is unmanageable to publish individually
+         under Docker Desktop bridge networking on macOS. Widen this (and the
+         matching docker-compose.yml port range) if you need more concurrent
+         call legs than this comfortably covers. -->
+    <param name="rtp-start-port" value="16384"/>
+    <param name="rtp-end-port" value="16584"/>
+  </settings>
+</configuration>

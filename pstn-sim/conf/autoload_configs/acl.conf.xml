@@ -1,0 +1,20 @@
+<configuration name="acl.conf" description="Network Lists">
+  <network-lists>
+    <!-- Used by the internal profile's apply-inbound-acl: only requests for
+         a known domain (i.e. matching a directory user's domain) are
+         accepted - this plus per-extension passwords is the native
+         replacement for a hosted token/password auth service, see
+         docs/INTAKE.md §1/§4. -->
+    <list name="domains" default="deny">
+      <node type="allow" domain="$${domain}"/>
+    </list>
+
+    <!-- Used by the external profile: only our own docker-compose network
+         (see docker-compose.yml's fixed subnet) may talk to the
+         gateway-facing profile - defense in depth, since 5080 is never
+         published to the host anyway. -->
+    <list name="pstn_trusted" default="deny">
+      <node type="allow" cidr="172.28.0.0/24"/>
+    </list>
+  </network-lists>
+</configuration>

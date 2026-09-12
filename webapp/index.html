@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FreeSWITCH Lab Softphone</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>FreeSWITCH WebRTC Lab</h1>
+
+      <section class="panel">
+        <h2>Connection</h2>
+        <div class="row">
+          <label>WSS URL</label>
+          <input id="wsUrl" type="text" value="wss://localhost:7443" />
+        </div>
+        <div class="row">
+          <label>Extension</label>
+          <input id="extension" type="text" value="1000" />
+        </div>
+        <div class="row">
+          <label>Password</label>
+          <input id="password" type="password" value="" />
+        </div>
+        <div class="row">
+          <label>Domain</label>
+          <input id="domain" type="text" value="fs.local" />
+        </div>
+        <div class="row">
+          <button id="registerBtn">Register</button>
+          <button id="unregisterBtn" disabled>Unregister</button>
+          <span id="regStatus" class="status status-unregistered">unregistered</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Call</h2>
+        <div class="row">
+          <label>Destination</label>
+          <input id="destination" type="text" value="2000" />
+          <button id="callBtn" disabled>Call</button>
+          <button id="hangupBtn" disabled>Hang up</button>
+        </div>
+        <div class="row">
+          <button id="muteBtn" disabled>Mute</button>
+          <button id="holdBtn" disabled>Hold</button>
+          <span id="callStatus" class="status status-idle">idle</span>
+        </div>
+        <div id="incoming" class="incoming" hidden>
+          <span>Incoming call from <strong id="incomingFrom"></strong></span>
+          <button id="answerBtn">Answer</button>
+          <button id="declineBtn">Decline</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Log</h2>
+        <pre id="log" class="log"></pre>
+      </section>
+
+      <audio id="remoteAudio" autoplay playsinline></audio>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

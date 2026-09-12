@@ -1,0 +1,11 @@
+<configuration name="json_cdr.conf" description="JSON CDR">
+  <settings>
+    <!-- Writes one JSON file per call leg to log/cdr-json/ - groundwork for
+         the Phase 2 dashboard's CDR ingestion (docs/INTAKE.md §3/§6). No
+         HTTP endpoint configured yet since the dashboard-api doesn't exist
+         yet; add a "url" param here once it does. -->
+    <param name="log-dir" value="$${log_dir}/cdr-json"/>
+    <param name="log-b-leg" value="false"/>
+    <param name="encode-legs" value="false"/>
+  </settings>
+</configuration>

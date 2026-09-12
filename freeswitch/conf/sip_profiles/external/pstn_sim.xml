@@ -1,0 +1,20 @@
+<!--
+    Simulated-PSTN gateway (docs/INTAKE.md §2/§3). Peers with the pstn-sim
+    container over the internal docker-compose network using static,
+    IP-ACL-based trunking (register="false") - one of the two native,
+    provider-agnostic auth patterns from docs/INTAKE.md §4, no
+    username/password or hosted token involved.
+
+    THIS IS THE SWAP POINT for a real SIP trunk later (Phase 1.5): keep this
+    file's shape, just point `proxy`/`register-proxy` at the real carrier and
+    switch to the other native pattern (register="true" with `username`/
+    `password`) if the carrier requires registration instead of static IP
+    trunking.
+-->
+<include>
+  <gateway name="pstn_sim">
+    <param name="register" value="false"/>
+    <param name="proxy" value="pstn-sim:5080"/>
+    <param name="context" value="public"/>
+  </gateway>
+</include>

@@ -1,0 +1,29 @@
+<include>
+  <!-- Extension-to-extension (WebRTC/SIP), 1000-1003. See docs/INTAKE.md §3;
+       numbering plan in §7. -->
+  <extension name="local_extension">
+    <condition field="destination_number" expression="^(10[0-3][0-9])$">
+      <action application="export" data="dialed_extension=$1"/>
+      <action application="set" data="ringback=${us-ring}"/>
+      <action application="set" data="call_timeout=30"/>
+      <action application="set" data="hangup_after_bridge=true"/>
+      <action application="bridge" data="user/${dialed_extension}@${domain_name}"/>
+    </condition>
+  </extension>
+
+  <!-- To the simulated-PSTN leg (pstn-sim), 2000-2099. pstn-sim auto-answers
+       and echoes audio back - a full round trip through the gateway proves
+       the whole webrtc -> freeswitch -> gateway -> pstn-sim path works.
+       IMPORTANT: bypass_media/proxy_media must stay OFF (they're off by
+       default here) so FreeSWITCH keeps transcoding between the WebRTC
+       (Opus/DTLS-SRTP) leg and this plain PCMU/PCMA leg - see
+       docs/INTAKE.md §3/§7. -->
+  <extension name="to_pstn_sim">
+    <condition field="destination_number" expression="^(20[0-9][0-9])$">
+      <action application="export" data="dialed_extension=$1"/>
+      <action application="set" data="call_timeout=30"/>
+      <action application="set" data="hangup_after_bridge=true"/>
+      <action application="bridge" data="sofia/gateway/pstn_sim/${dialed_extension}"/>
+    </condition>
+  </extension>
+</include>

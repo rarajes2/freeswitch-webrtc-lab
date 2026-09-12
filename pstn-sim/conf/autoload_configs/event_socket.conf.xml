@@ -1,0 +1,11 @@
+<configuration name="event_socket.conf" description="Socket Client">
+  <settings>
+    <param name="nat-map" value="false"/>
+    <!-- Bind on all interfaces - safe only because docker-compose.yml never
+         publishes 8021 to the host; it stays reachable on the internal
+         compose network only (docs/INTAKE.md §3/§4). -->
+    <param name="listen-ip" value="0.0.0.0"/>
+    <param name="listen-port" value="8021"/>
+    <param name="password" value="$${esl_password}"/>
+  </settings>
+</configuration>

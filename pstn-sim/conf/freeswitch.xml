@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+    Top-level FreeSWITCH config. This lab intentionally ships a minimal,
+    hand-authored conf/ tree (not the full ~200-file vanilla sample config) -
+    see docs/INTAKE.md §2/§3 for what's in scope and why.
+-->
+<document type="freeswitch/xml">
+  <X-PRE-PROCESS cmd="include" data="vars.xml"/>
+
+  <section name="configuration" description="Various Configuration">
+    <X-PRE-PROCESS cmd="include" data="autoload_configs/*.xml"/>
+  </section>
+
+  <section name="dialplan" description="Regex/XML Dialplan">
+    <X-PRE-PROCESS cmd="include" data="dialplan/*.xml"/>
+  </section>
+
+  <!-- mod_sofia relies on this for SIP authentication -->
+  <section name="directory" description="User Directory">
+    <X-PRE-PROCESS cmd="include" data="directory/*.xml"/>
+  </section>
+</document>
