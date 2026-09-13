@@ -150,6 +150,39 @@ first. `pstn-sim`'s inbound dialplan
 attempting to bridge to `user/2000@...` -- keep this pattern if you add
 similar "ring a phone, fall back to X" extensions.
 
+### A real browser call to 2000 (or any bridged destination) gets `488 Not Acceptable Here` / `INCOMPATIBLE_DESTINATION` right after answer
+
+**Symptom:** the SIP response shows `Reason: Q.850;cause=88;text="INCOMPATIBLE_DESTINATION"`,
+and `docker compose logs freeswitch` shows the callee leg (e.g.
+`sofia/external/2000`) reaching "answered" and then immediately hanging up
+with `INCOMPATIBLE_DESTINATION`, with a
+`[WARNING] switch_core_media.c ... NO candidate ACL defined, Defaulting to
+wan.auto` line right before it. Note this is different from a plain
+`fs_cli originate` test working fine (see the acceptance test in
+[`USER_MANUAL.md`](USER_MANUAL.md)) -- that test never exercises real
+ICE/WebRTC candidates, so it doesn't hit this at all.
+
+**Cause:** FreeSWITCH filters incoming WebRTC ICE candidates against an ACL,
+defaulting to `wan.auto` when the profile doesn't set one. `wan.auto`
+**denies private/RFC1918 addresses by design** (see the auto-generated lists
+logged at startup). A browser on a home/office LAN offers host candidates
+(and often even its STUN-reflexive one, behind carrier-grade NAT) as private
+addresses -- so with only `wan.auto`, every single candidate gets dropped,
+leaving no usable media path, and the call fails right after answer.
+
+**Fix (already applied here):** `freeswitch/conf/sip_profiles/internal.xml`
+sets `apply-candidate-acl` to both `rfc1918.auto` (allows all private ranges
+outright -- correct for a same-LAN lab) and `wan.auto` (for a real public
+candidate, so this keeps working if you're not on a private network). If you
+still hit this after pulling a fresh copy of this repo, restart the profile
+so the new ACL takes effect (a plain `reloadxml` isn't enough for
+sip_profile-level settings):
+
+```sh
+docker exec fswebrtclab-freeswitch fs_cli -x "reloadxml"
+docker exec fswebrtclab-freeswitch fs_cli -x "sofia profile internal restart"
+```
+
 ### macOS/Docker Desktop: TURN (coturn) or FreeSWITCH's RTP isn't reachable from a real device
 
 **Cause:** `network_mode: host` does not expose a container on the Mac's real

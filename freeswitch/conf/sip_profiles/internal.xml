@@ -18,6 +18,22 @@
     <param name="inbound-codec-prefs" value="$${global_codec_prefs}"/>
     <param name="outbound-codec-prefs" value="$${global_codec_prefs}"/>
     <param name="inbound-codec-negotiation" value="generous"/>
+    <!-- Without this, FreeSWITCH filters incoming WebRTC ICE candidates
+         against "wan.auto" by default, which DENIES private/RFC1918
+         addresses by design (see conf/autoload_configs/acl.conf.xml's
+         auto-generated lists). Every candidate a browser on a home/office
+         LAN offers (host candidates, and often even the STUN-reflexive one
+         behind carrier-grade NAT) is a private address, so with only
+         wan.auto every candidate gets dropped and the call fails with
+         INCOMPATIBLE_DESTINATION right after answer - see
+         docs/DEBUGGING.md. Deliberately rfc1918.auto, not localnet.auto:
+         localnet.auto only covers *this container's own* detected subnet
+         (the docker bridge, 172.x), not the browser's real LAN - rfc1918.auto
+         allows all private ranges outright, which is the correct trust
+         model for a same-LAN lab (would need narrowing for a real
+         multi-tenant/public deployment). Multiple params are additive. -->
+    <param name="apply-candidate-acl" value="rfc1918.auto"/>
+    <param name="apply-candidate-acl" value="wan.auto"/>
     <param name="rtp-timer-name" value="soft"/>
     <param name="rtp-ip" value="$${local_ip_v4}"/>
     <param name="sip-ip" value="$${local_ip_v4}"/>
