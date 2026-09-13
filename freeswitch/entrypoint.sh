@@ -18,11 +18,23 @@ done
 # step for a non-localhost host; see docs/DEBUGGING.md.
 WSS_PEM=/usr/local/freeswitch/conf/tls/wss.pem
 if [ ! -s "$WSS_PEM" ]; then
-    echo "entrypoint: generating self-signed WSS cert at $WSS_PEM"
+    # Must list every address a client will actually connect to in
+    # subjectAltName, not just the domain -- a browser (mobile ones
+    # especially) validates the cert against the literal host/IP in the wss://
+    # URL. Without EXTERNAL_SIP_IP here, a phone connecting via your LAN IP
+    # (which it must -- it can't resolve "localhost"/LAB_DOMAIN to your
+    # machine) gets a cert that doesn't cover that address at all, and the
+    # WebSocket connection is silently closed rather than showing a clickable
+    # warning like a normal page load would (see docs/DEBUGGING.md).
+    SAN="DNS:${LAB_DOMAIN:-freeswitch.local},DNS:localhost,IP:127.0.0.1"
+    if [ -n "$EXTERNAL_SIP_IP" ] && [[ "$EXTERNAL_SIP_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        SAN="${SAN},IP:${EXTERNAL_SIP_IP}"
+    fi
+    echo "entrypoint: generating self-signed WSS cert at $WSS_PEM (SAN: $SAN)"
     openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
         -keyout /tmp/wss-key.pem -out /tmp/wss-cert.pem \
         -subj "/CN=${LAB_DOMAIN:-freeswitch.local}" \
-        -addext "subjectAltName=DNS:${LAB_DOMAIN:-freeswitch.local},DNS:localhost,IP:127.0.0.1" \
+        -addext "subjectAltName=$SAN" \
         2>/dev/null
     cat /tmp/wss-cert.pem /tmp/wss-key.pem > "$WSS_PEM"
     rm -f /tmp/wss-key.pem /tmp/wss-cert.pem

@@ -60,6 +60,14 @@ async function register() {
       },
     },
     delegate: {
+      onServerConnect: () => log('WebSocket connected'),
+      onServerDisconnect: (error) => {
+        // Surfaces *why* the socket closed -- a bad/untrusted TLS cert
+        // (see docs/DEBUGGING.md "websocket is closing the connection")
+        // closes silently with no other feedback otherwise.
+        log(`WebSocket disconnected${error ? `: ${error.message || error}` : ''}`)
+        setRegStatus('unregistered')
+      },
       onRegistered: () => {
         setRegStatus('registered')
         log(`Registered as ${aor}`)

@@ -123,6 +123,62 @@ is a one-time step per browser profile. For a demo/production deployment,
 swap in a real cert (Let's Encrypt via a reverse proxy) instead -- see
 [`INTAKE.md`](INTAKE.md) §7.
 
+### Can't open the webapp from a phone/other device on the same Wi-Fi
+
+**Cause 1 -- page doesn't load at all (connection refused/times out):** Vite's
+dev server only listens on `localhost` by default; a device other than the
+host machine can't reach it at all.
+
+**Fix (already applied here):** `webapp/vite.config.js` sets `server.host:
+true`, so `npm run dev` also listens on the machine's real network interface.
+Use the `Network:` URL Vite prints (not `Local:`) from the other device.
+
+**Cause 2 -- page loads but mic access is blocked / WebRTC silently fails:**
+`http://localhost` is a secure-context exemption for `getUserMedia` and
+friends; `http://<lan-ip>` is not. Any device other than the host itself
+needs real HTTPS.
+
+**Fix (already applied here):** `vite.config.js` also loads
+`@vitejs/plugin-basic-ssl`, so the dev server is HTTPS everywhere (self-signed,
+same tradeoff as FreeSWITCH's own WSS cert). On the other device: accept the
+certificate warning for the webapp's own URL, then set **WSS URL** in the app
+to `wss://<your-LAN-IP>:7443` (not `localhost`, which that device can't
+resolve) and separately accept `https://<your-LAN-IP>:7443`'s certificate too
+-- see [`webapp/README.md`](../webapp/README.md#testing-from-a-phone-or-any-other-device-on-the-same-wi-fi).
+
+### WebSocket to `wss://<lan-ip>:7443` closes right after connecting (no clickable cert warning, just closes)
+
+**Symptom:** the app's log shows `WebSocket disconnected` shortly after
+registering (or the browser's own devtools show a closed/failed WS
+connection), even after accepting the certificate warning by visiting
+`https://<lan-ip>:7443` directly first.
+
+**Cause:** the self-signed cert's `subjectAltName` didn't list the actual
+LAN IP being connected to -- only `LAB_DOMAIN`, `localhost`, and `127.0.0.1`.
+Browsers validate a cert against the *literal host/IP in the URL*, and a
+mismatch here is usually enforced much more strictly for a WebSocket upgrade
+than for a normal page navigation: instead of a clickable "proceed anyway"
+warning, the connection is just silently closed.
+
+**Fix (already applied here):** `freeswitch/entrypoint.sh` now includes
+`EXTERNAL_SIP_IP` (from `.env`) in the cert's SAN list when generating it.
+Since the cert is only generated once and then reused, if you're seeing this
+against an *older* cert (e.g. `EXTERNAL_SIP_IP` changed after the cert already
+existed), regenerate it:
+
+```sh
+rm freeswitch/conf/tls/wss.pem
+docker compose up -d --force-recreate freeswitch
+```
+
+Confirm the fix with:
+
+```sh
+echo | openssl s_client -connect <lan-ip>:7443 -servername <lan-ip> 2>/dev/null \
+  | openssl x509 -noout -text | grep -A2 "Subject Alternative Name"
+# should list IP Address:<lan-ip>
+```
+
 ### Registration works but calls have no audio ("no audio" / one-way audio)
 
 **Cause:** almost always `EXTERNAL_RTP_IP`/`EXTERNAL_SIP_IP` (in `.env`) not
